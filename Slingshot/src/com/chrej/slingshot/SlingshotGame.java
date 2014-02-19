@@ -1,4 +1,4 @@
-package com.chrej.slingshot.Slingshot;
+package com.chrej.slingshot;
 
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;

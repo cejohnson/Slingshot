@@ -1,9 +1,10 @@
-package com.chrej.slingshot.Slingshot;
+package com.chrej.slingshot;
 
 import android.os.Bundle;
 
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
+import com.chrej.slingshot.SlingshotGame;
 
 public class MainActivity extends AndroidApplication {
     @Override
