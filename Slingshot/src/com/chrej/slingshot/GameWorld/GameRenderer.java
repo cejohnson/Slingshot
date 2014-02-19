@@ -1,5 +1,7 @@
 package com.chrej.slingshot.GameWorld;
 
+import java.util.ArrayList;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL10;
@@ -11,6 +13,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.chrej.slingshot.GameObjects.*;
+import com.chrej.slingshot.GameObjects.Enemies.Enemy;
 import com.chrej.slingshot.GameObjects.Projectiles.*;
 import com.chrej.slingshot.Helpers.AssetLoader;
 
@@ -27,8 +30,9 @@ public class GameRenderer {
 	private int gameHeight;
 
 	// Game Objects
-	private Projectile proj;
+	private ArrayList<Projectile> projectiles;
 	private ProjectileLauncher launcher;
+	private ArrayList<Enemy> enemies;
 	/*private ScrollHandler scroller;
 	private Grass frontGrass, backGrass;
 	private Pipe pipe1, pipe2, pipe3;*/
@@ -93,7 +97,15 @@ public class GameRenderer {
 		
 		//Draw Projectile
 		shapeRenderer.setColor(96 / 255.0f, 96 / 255.0f, 96 / 255.0f, 1);
-		shapeRenderer.circle(proj.getX(), proj.getY(), proj.getRadius());
+		for (Projectile proj : projectiles) {
+			shapeRenderer.circle(proj.getX(), proj.getY(), proj.getRadius());
+		}
+		
+		//Draw Enemies
+		shapeRenderer.setColor(0, 0, 0, 1);
+		for (Enemy enemy : enemies) {
+			shapeRenderer.rect(enemy.getPosition().x, enemy.getPosition().y, enemy.getWidth(), enemy.getHeight());
+		}
 
 		// End ShapeRenderer
 		shapeRenderer.end();
@@ -106,18 +118,13 @@ public class GameRenderer {
 		shapeRenderer.line(launcher.getLeftBand().getBottom(), launcher.getRightBand().getBottom());
 		shapeRenderer.end();
 		
-		batcher.begin();
+		/*batcher.begin();
 		
 		font.draw(batcher,  "X: " + (proj.getX() - launcher.getCenter()) + "m", gameWidth - 100, gameHeight - 5);
 		font.draw(batcher,  "Y: " + (proj.getY()) + "m", gameWidth - 100, gameHeight - 20);
 		font.draw(batcher,  "Speed: " + (proj.getSpeed()) + "m/s", gameWidth - 100, gameHeight - 35);
 		
-		shapeRenderer.begin(ShapeType.Filled);
-		shapeRenderer.setColor(Color.RED);
-		shapeRenderer.circle(proj.getBoundingCircle().x, proj.getBoundingCircle().y, proj.getBoundingCircle().radius);
-		shapeRenderer.end();
-		
-		batcher.end();
+		batcher.end();*/
 		
 		
 
@@ -125,7 +132,8 @@ public class GameRenderer {
 
 	private void initGameObjects() {
 		launcher = myWorld.getLauncher();
-		proj = launcher.getProjectile();
+		projectiles = launcher.getProjectiles();
+		enemies = myWorld.getEnemies();
 		
 		/*scroller = myWorld.getScroller();
 		frontGrass = scroller.getFrontGrass();

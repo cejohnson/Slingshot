@@ -1,12 +1,16 @@
 package com.chrej.slingshot.GameObjects.Projectiles;
 
+import java.util.ArrayList;
+
 import com.badlogic.gdx.math.Circle;
+import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.MathUtils;
+import com.chrej.slingshot.GameObjects.ProjectileLauncher;
+import com.chrej.slingshot.GameObjects.Enemies.Enemy;
+import com.chrej.slingshot.GameWorld.GameWorld;
 
 public class Projectile {
-	
-	private static final int GROUND = 5;
 	private static int launchHeight;
 
 	private Vector2 position; // m
@@ -15,78 +19,96 @@ public class Projectile {
 	
 	private Circle boundingCircle;
 
-	private static final float gravity = 9.8f; // m/s^2
-	private static final float airDensity = 1.275f; // kg/m^3
-	private static final float dragCoefficient = 0.47f; // No units
-
-	// private float rotation;
 	private float radius; // m
 	private float mass; // kg
 	private float area; // m^2
 	private float drag; // kg/m
 
-	private boolean launched;
 	private boolean traveling;
 	private boolean inAir;
+	private boolean postLaunch;
+	private boolean projectileReturned;
 
 	public Projectile(int x, int y, float radius, float density) {
 		this.radius = radius;
 		launchHeight = y;
 		area = MathUtils.PI * radius * radius;
 		mass = density * (4 / 3 * MathUtils.PI * radius * radius * radius);
-		drag = (airDensity * dragCoefficient * area) / 2;
+		drag = (GameWorld.AIR_DENSITY * GameWorld.DRAG_COEFFICIENT * area) / 2;
 
 		position = new Vector2(x, y + radius);
 		velocity = new Vector2(0, 0);
-		acceleration = new Vector2(0, -gravity);
+		acceleration = new Vector2(0, -GameWorld.GRAVITY);
 		
 		boundingCircle = new Circle(x, y + radius, radius);
 
-		launched = false;
-		traveling = true;
-		inAir = true;
+		traveling = false;
+		inAir = false;
+		postLaunch = false;
+		projectileReturned = false;
 	}
 
 	public void update(float delta) {
 
-		if (launched && traveling) {
+		if (traveling) {
 			velocity.add(acceleration.cpy().scl(delta));
-
-			//System.out.println("X: " + acceleration.x + ", Y: " + acceleration.y);
 
 			position.add(velocity.cpy().scl(delta));
 			
+			if (position.x > GameWorld.gameWidth)
+				position.x = 0;
+			if (position.x < 0)
+				position.x = GameWorld.gameWidth;
+			
 			boundingCircle.set(position.x, position.y, radius);
 
-			if ((velocity.len() > 0 && position.y > launchHeight) || velocity.y < 0) {
+			// Air resistance
+			if (inAir && postLaunch) {
 				acceleration.x = -(drag / mass) * velocity.len() * velocity.x;
-				acceleration.y = -gravity - (drag / mass) * velocity.len()
+				acceleration.y = -GameWorld.GRAVITY - (drag / mass) * velocity.len()
 						* velocity.y;
 			}
-			if (!inAir) {
+			if (!inAir && postLaunch) {
 				if (velocity.len() > 0) {
 					acceleration.x = -(drag) * velocity.x; // Making it up
 				} else
 					traveling = false;
 			}
+			if (position.y > launchHeight) {
+				postLaunch = true;
+			}
 		}
 	}
 	
 	public void reset() {
-		setAcceleration(new Vector2(0, 0));
-		launched = false;
-		traveling = true;
-		inAir = true;
+		acceleration.set(0, 0);
+		velocity.set(0, 0);
+		traveling = false;
+		inAir = false;
+		postLaunch = false;
+		projectileReturned = false;
 	}
 	
 	public void ground() {
-		position.y = (GROUND + radius);
+		position.y = (GameWorld.GROUND + radius);
 		velocity.y = 0;
 		inAir = false;
+		if (!projectileReturned) {
+			ProjectileLauncher.returnProj();
+			projectileReturned = true;
+		}		
 	}
-
-	public void setAcceleration(Vector2 a) {
-		acceleration.set(a);
+	
+	public boolean isInAir() {
+		return (position.y <= GameWorld.gameHeight && inAir);
+	}
+	
+	public void checkCollisions(ArrayList<Enemy> enemies) {
+		for (Enemy enemy : enemies) {
+			if (Intersector.overlaps(boundingCircle, enemy.getBoundingRectangle())) {
+				enemy.hit();
+			}
+		}
 	}
 	
 	public float getSpeed() {
@@ -95,7 +117,9 @@ public class Projectile {
 
 	public void launch(Vector2 a) {
 		acceleration.add(a);
-		launched = true;
+		inAir = true;
+		traveling = true;
+		postLaunch = false;
 	}
 
 	public void onClick() {

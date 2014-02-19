@@ -1,17 +1,20 @@
 package com.chrej.slingshot.GameObjects;
 
+import java.util.ArrayList;
+
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.chrej.slingshot.GameObjects.Projectiles.*;
-import com.chrej.slingshot.GameObjects.Projectiles.Projectile;
+import com.chrej.slingshot.GameWorld.GameWorld;
 
 public class ProjectileLauncher {
 	
 	private int center;
 	private ElasticBand leftBand;
 	private ElasticBand rightBand;
-	private Projectile proj;
-	private float projMass;
+	private ArrayList<Projectile> projectiles;
+	private Projectile currentProj;
+	
 	private Vector2 projForce;
 	private Vector2 acceleration;
 	private Rectangle pocket;
@@ -20,26 +23,40 @@ public class ProjectileLauncher {
 	private static final float BAND_BOTTOM = 15f;
 	private static final float Y_MIN = 6;
 	private static final float X_RANGE = 10;
+	protected static int numProjectiles = 5;
 	
 
 	public ProjectileLauncher(int gameWidth) {
 		center = gameWidth / 2;
+		projectiles = new ArrayList<Projectile>();
 		leftBand = new ElasticBand((float) center - 3, BAND_TOP, (float) center - 1, BAND_BOTTOM);
 		rightBand = new ElasticBand((float) center + 3, BAND_TOP, (float) center + 1, BAND_BOTTOM);
 		pocket = new Rectangle(leftBand.bottom.x, leftBand.bottom.y, 2, 1);
 	}
 	
-	public void addProjectile() {
-		this.proj = new Rock((int) center, (int) BAND_BOTTOM, 1f);
-		projMass = proj.getMass();		
+	public void addProjectile(float radius) {
+		currentProj = new Rock((int) center, (int) BAND_BOTTOM, radius);
+		projectiles.add(currentProj);
+		System.out.println(numProjectiles);
+		GameWorld.addProjectile(currentProj);
+	}
+	
+	public static void returnProj() {
+		numProjectiles++;
+		System.out.println(numProjectiles);
 	}
 	
 	public void update(float delta) {
-		proj.update(delta);
+		for (Projectile proj : projectiles) {
+			proj.update(delta);
+		}
 	}
 	
 	public void onClick(float x, float y) {
-		proj.reset();
+		if (numProjectiles > 0){
+			addProjectile(.75f);
+		}
+		onDrag(x, y);
 	}
 	
 	public void onDrag(float x, float y) {
@@ -49,42 +66,35 @@ public class ProjectileLauncher {
 			x = center + X_RANGE;
 		else if (x < center - X_RANGE)
 			x = center - X_RANGE;
-		proj.setX(x);
-		proj.setY(y);
 		leftBand.bottom.x = x - 1;
 		rightBand.bottom.x = x + 1;
 		leftBand.bottom.y = y;
 		rightBand.bottom.y = y;
 		pocket.setX(leftBand.bottom.x);
 		pocket.setY(leftBand.bottom.y);
+		
+		if (numProjectiles > 0) {
+			currentProj.setX(x);
+			currentProj.setY(y);
+		}
 	}
 	
 	public void offClick(float x, float y) {
-		if (y < Y_MIN)
-			y = Y_MIN;
-		if (x > center + X_RANGE)
-			x = center + X_RANGE;
-		else if (x < center - X_RANGE)
-			x = center - X_RANGE;
-		proj.setX(x);
-		proj.setY(y);
-		leftBand.bottom.x = x - 1;
-		rightBand.bottom.x = x + 1;
-		leftBand.bottom.y = y;
-		rightBand.bottom.y = y;
-		projForce = leftBand.getForce().add(rightBand.getForce());
-		System.out.println("Proj Force: " + projForce);
-		acceleration = projForce.div(projMass);
-		System.out.println("Acceleration: " + acceleration);
-		proj.launch(acceleration);
+		onDrag(x, y);
+		if (numProjectiles > 0) {
+			projForce = leftBand.getForce().add(rightBand.getForce());
+			acceleration = projForce.div(currentProj.getMass());
+			currentProj.launch(acceleration);
+			numProjectiles--;
+		}
 		leftBand.bottom.x = (float) center - 1;
 		leftBand.bottom.y = BAND_BOTTOM;
 		rightBand.bottom.x = (float) center + 1;
 		rightBand.bottom.y = BAND_BOTTOM;
 	}
 	
-	public Projectile getProjectile() {
-		return proj;
+	public ArrayList<Projectile> getProjectiles() {
+		return projectiles;
 	}
 	
 	public int getCenter() {
@@ -101,7 +111,7 @@ public class ProjectileLauncher {
 	
 	public class ElasticBand {
 		static final double E = 100000000; // Young's Modulus for rubber in Pa
-		static final double A0 = .001963495; // Cross-sectional area of .05m diameter cord in m^2
+		static final double A0 = .001963495; // Cross-sectional area of .1m diameter cord in m^2
 		
 		double force; // N (kg*m/s^2)
 		float L0; // Initial length in m
