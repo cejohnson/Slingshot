@@ -1,6 +1,6 @@
 package com.chrej.slingshot.client;
 
-import com.chrej.slingshot.SlingshotGame;
+import com.chrej.slingshot.SlingshotGame.SlingshotGame;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.backends.gwt.GwtApplication;
 import com.badlogic.gdx.backends.gwt.GwtApplicationConfiguration;

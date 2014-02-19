@@ -5,7 +5,7 @@ import org.robovm.cocoatouch.uikit.UIApplication;
 
 import com.badlogic.gdx.backends.iosrobovm.IOSApplication;
 import com.badlogic.gdx.backends.iosrobovm.IOSApplicationConfiguration;
-import com.chrej.slingshot.SlingshotGame;
+import com.chrej.slingshot.SlingshotGame.SlingshotGame;
 
 public class RobovmLauncher extends IOSApplication.Delegate {
 	@Override
