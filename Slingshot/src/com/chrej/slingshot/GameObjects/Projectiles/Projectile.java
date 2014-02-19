@@ -103,6 +103,10 @@ public class Projectile {
 		return (position.y <= GameWorld.gameHeight && inAir);
 	}
 	
+	public boolean isPostLaunch() {
+		return postLaunch;
+	}
+	
 	public void checkCollisions(ArrayList<Enemy> enemies) {
 		for (Enemy enemy : enemies) {
 			if (Intersector.overlaps(boundingCircle, enemy.getBoundingRectangle())) {

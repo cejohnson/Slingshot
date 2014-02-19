@@ -18,6 +18,8 @@ public class Enemy {
 	protected boolean traveling;
 	protected boolean hit;
 	protected boolean alive;
+	protected boolean scoreAdded = false;
+	
 	protected Rectangle boundingRectangle;
 	
 	protected int gameWidth;
@@ -70,6 +72,10 @@ public class Enemy {
 	
 	public void hit() {
 		hit = true;
+		if(!scoreAdded) {
+			GameWorld.addKill();
+			scoreAdded = true;
+		}
 	}
 	
 	public boolean isHit() {

@@ -118,13 +118,19 @@ public class GameRenderer {
 		shapeRenderer.line(launcher.getLeftBand().getBottom(), launcher.getRightBand().getBottom());
 		shapeRenderer.end();
 		
-		/*batcher.begin();
+		batcher.begin();
 		
-		font.draw(batcher,  "X: " + (proj.getX() - launcher.getCenter()) + "m", gameWidth - 100, gameHeight - 5);
-		font.draw(batcher,  "Y: " + (proj.getY()) + "m", gameWidth - 100, gameHeight - 20);
-		font.draw(batcher,  "Speed: " + (proj.getSpeed()) + "m/s", gameWidth - 100, gameHeight - 35);
+		/*if (projectiles.size() > 0) {
+			font.draw(batcher,  "X: " + (projectiles.get(0).getX() - launcher.getCenter()) + "m", gameWidth - 100, gameHeight - 5);
+			font.draw(batcher,  "Y: " + (projectiles.get(0).getY()) + "m", gameWidth - 100, gameHeight - 20);
+			font.draw(batcher,  "Speed: " + (projectiles.get(0).getSpeed()) + "m/s", gameWidth - 100, gameHeight - 35);
+		}*/
 		
-		batcher.end();*/
+		font.draw(batcher, "" + myWorld.getScore(), 5, 20);
+		font.draw(batcher, "" + launcher.getNumProjectiles(), gameWidth - 10, 20);
+		
+		
+		batcher.end();
 		
 		
 

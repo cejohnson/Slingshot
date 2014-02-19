@@ -23,7 +23,10 @@ public class ProjectileLauncher {
 	private static final float BAND_BOTTOM = 15f;
 	private static final float Y_MIN = 6;
 	private static final float X_RANGE = 10;
-	protected static int numProjectiles = 5;
+	private static final int NUM_PROJECTILES = 5;
+	protected static int numProjectiles = NUM_PROJECTILES;
+	
+	private boolean applyForce = true;
 	
 
 	public ProjectileLauncher(int gameWidth) {
@@ -37,7 +40,8 @@ public class ProjectileLauncher {
 	public void addProjectile(float radius) {
 		currentProj = new Rock((int) center, (int) BAND_BOTTOM, radius);
 		projectiles.add(currentProj);
-		System.out.println(numProjectiles);
+		if (projectiles.size() > NUM_PROJECTILES)
+			projectiles.remove(0);
 		GameWorld.addProjectile(currentProj);
 	}
 	
@@ -47,6 +51,26 @@ public class ProjectileLauncher {
 	}
 	
 	public void update(float delta) {
+		if (applyForce) {
+			if (currentProj != null && !currentProj.isPostLaunch()) {
+				leftBand.bottom.x = currentProj.getX() - 1;
+				rightBand.bottom.x = currentProj.getX() + 1;
+				leftBand.bottom.y = currentProj.getY();
+				rightBand.bottom.y = currentProj.getY();
+				
+				projForce = leftBand.getForce().add(rightBand.getForce());
+				projForce.y -= currentProj.getMass()*GameWorld.GRAVITY;
+				acceleration = projForce.div(currentProj.getMass());
+				currentProj.launch(acceleration);
+			} else {
+				leftBand.bottom.x = center - 1;
+				rightBand.bottom.x = center + 1;
+				leftBand.bottom.y = BAND_BOTTOM;
+				rightBand.bottom.y = BAND_BOTTOM;
+			}
+			pocket.setX(leftBand.bottom.x);
+			pocket.setY(leftBand.bottom.y);
+		}
 		for (Projectile proj : projectiles) {
 			proj.update(delta);
 		}
@@ -56,6 +80,7 @@ public class ProjectileLauncher {
 		if (numProjectiles > 0){
 			addProjectile(.75f);
 		}
+		applyForce = false;
 		onDrag(x, y);
 	}
 	
@@ -82,15 +107,14 @@ public class ProjectileLauncher {
 	public void offClick(float x, float y) {
 		onDrag(x, y);
 		if (numProjectiles > 0) {
-			projForce = leftBand.getForce().add(rightBand.getForce());
-			acceleration = projForce.div(currentProj.getMass());
-			currentProj.launch(acceleration);
 			numProjectiles--;
+			GameWorld.addShot();
 		}
-		leftBand.bottom.x = (float) center - 1;
-		leftBand.bottom.y = BAND_BOTTOM;
-		rightBand.bottom.x = (float) center + 1;
-		rightBand.bottom.y = BAND_BOTTOM;
+		applyForce = true;
+	}
+	
+	public int getNumProjectiles() {
+		return numProjectiles;
 	}
 	
 	public ArrayList<Projectile> getProjectiles() {
