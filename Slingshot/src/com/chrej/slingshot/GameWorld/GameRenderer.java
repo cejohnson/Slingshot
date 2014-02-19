@@ -1,6 +1,7 @@
 package com.chrej.slingshot.GameWorld;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Animation;
@@ -111,8 +112,14 @@ public class GameRenderer {
 		font.draw(batcher,  "Y: " + (proj.getY()) + "m", gameWidth - 100, gameHeight - 20);
 		font.draw(batcher,  "Speed: " + (proj.getSpeed()) + "m/s", gameWidth - 100, gameHeight - 35);
 		
+		shapeRenderer.begin(ShapeType.Filled);
+		shapeRenderer.setColor(Color.RED);
+		shapeRenderer.circle(proj.getBoundingCircle().x, proj.getBoundingCircle().y, proj.getBoundingCircle().radius);
+		shapeRenderer.end();
 		
 		batcher.end();
+		
+		
 
 	}
 

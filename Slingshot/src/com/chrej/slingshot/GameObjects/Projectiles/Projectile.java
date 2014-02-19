@@ -1,5 +1,6 @@
 package com.chrej.slingshot.GameObjects.Projectiles;
 
+import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.MathUtils;
 
@@ -11,6 +12,8 @@ public class Projectile {
 	private Vector2 position; // m
 	private Vector2 velocity; // m/s
 	private Vector2 acceleration; // m/s^2
+	
+	private Circle boundingCircle;
 
 	private static final float gravity = 9.8f; // m/s^2
 	private static final float airDensity = 1.275f; // kg/m^3
@@ -36,6 +39,8 @@ public class Projectile {
 		position = new Vector2(x, y + radius);
 		velocity = new Vector2(0, 0);
 		acceleration = new Vector2(0, -gravity);
+		
+		boundingCircle = new Circle(x, y + radius, radius);
 
 		launched = false;
 		traveling = true;
@@ -50,16 +55,15 @@ public class Projectile {
 			//System.out.println("X: " + acceleration.x + ", Y: " + acceleration.y);
 
 			position.add(velocity.cpy().scl(delta));
+			
+			boundingCircle.set(position.x, position.y, radius);
 
 			if ((velocity.len() > 0 && position.y > launchHeight) || velocity.y < 0) {
 				acceleration.x = -(drag / mass) * velocity.len() * velocity.x;
 				acceleration.y = -gravity - (drag / mass) * velocity.len()
 						* velocity.y;
 			}
-			if (position.y < (GROUND + radius)) {
-				position.y = (GROUND + radius);
-				velocity.y = 0;
-				inAir = false;
+			if (!inAir) {
 				if (velocity.len() > 0) {
 					acceleration.x = -(drag) * velocity.x; // Making it up
 				} else
@@ -73,6 +77,12 @@ public class Projectile {
 		launched = false;
 		traveling = true;
 		inAir = true;
+	}
+	
+	public void ground() {
+		position.y = (GROUND + radius);
+		velocity.y = 0;
+		inAir = false;
 	}
 
 	public void setAcceleration(Vector2 a) {
@@ -116,6 +126,10 @@ public class Projectile {
 
 	public float getMass() {
 		return mass;
+	}
+	
+	public Circle getBoundingCircle() {
+		return boundingCircle;
 	}
 
 	/*
