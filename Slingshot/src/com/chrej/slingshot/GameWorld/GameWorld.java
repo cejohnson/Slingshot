@@ -15,7 +15,7 @@ public class GameWorld {
 	public static final float AIR_DENSITY = 1.275f; // kg/m^3
 	public static final float DRAG_COEFFICIENT = 0.47f; // No units
 	public static final int GROUND = 5;
-	public static final int NUM_ENEMIES = 12;
+	public static final int NUM_ENEMIES = 20;
 	
 	public static int gameWidth;
 	public static int gameHeight;
@@ -46,7 +46,7 @@ public class GameWorld {
 		projectiles = new ArrayList<Projectile>();
 		enemies = new ArrayList<Enemy>();
 		for (int i = 0; i < NUM_ENEMIES; i++) {
-			enemies.add(new FlyingEnemy(gameWidth, gameHeight, rand.nextInt(6) + 3, 2));
+			enemies.add(new FlyingEnemy(gameWidth, gameHeight, rand.nextInt(6) + 4, 2));
 		}
 		launcher = new ProjectileLauncher(gameWidth);
 	}

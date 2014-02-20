@@ -3,14 +3,14 @@ package com.chrej.slingshot.GameObjects.Enemies;
 import java.util.ArrayList;
 
 import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.chrej.slingshot.GameWorld.GameWorld;
 
 public class Enemy {
 	
-	protected static final float GRAVITY = 9.8f;
-	private static final int GROUND = 5;
+	protected final static float density = 2700;
 
 	protected Vector2 position; // m
 	protected Vector2 velocity; // m/s
@@ -25,13 +25,17 @@ public class Enemy {
 	protected int gameWidth;
 	protected int gameHeight;
 	protected int width;
+	protected float radius;
 	protected int height;
+	protected float mass;
 
 	public Enemy(int gameWidth, int gameHeight, int x, int y, int width, int height, int speed) {
 		this.gameWidth = gameWidth;
 		this.gameHeight = gameHeight;
 		this.width = width;
 		this.height = height;
+		radius = width / 2;
+		mass = MathUtils.PI*height*(radius*radius-((radius-.03f)*(radius-.03f))) * density; 
 		position = new Vector2(x, y);
 		velocity = new Vector2(speed, 0);
 		acceleration = new Vector2(0, 0);
@@ -91,7 +95,7 @@ public class Enemy {
 	}
 	
 	public void ground() {
-		position.y = GROUND;
+		position.y = GameWorld.GROUND;
 		velocity.y = 0;
 		acceleration.y = 0;
 	}
@@ -102,6 +106,10 @@ public class Enemy {
 
 	public Vector2 getPosition() {
 		return position;
+	}
+	
+	public Vector2 getMomentum() {
+		return velocity.scl(mass);
 	}
 
 	public void setPosition(Vector2 position) {

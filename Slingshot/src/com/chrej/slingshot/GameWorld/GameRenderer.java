@@ -116,13 +116,20 @@ public class GameRenderer {
 		shapeRenderer.line(launcher.getLeftBand().getTop(), launcher.getLeftBand().getBottom());
 		shapeRenderer.line(launcher.getRightBand().getTop(), launcher.getRightBand().getBottom());
 		shapeRenderer.line(launcher.getLeftBand().getBottom(), launcher.getRightBand().getBottom());
+		
+		//Draw Force line
+		if (launcher.getCurrentProjLoc() != null) {
+			shapeRenderer.setColor(Color.RED);
+			shapeRenderer.line(launcher.getCurrentProjLoc(), launcher.getEndOfForceLine());
+		}
+		
 		shapeRenderer.end();
 		
 		batcher.begin();
 		
 		/*if (projectiles.size() > 0) {
-			font.draw(batcher,  "X: " + (projectiles.get(0).getX() - launcher.getCenter()) + "m", gameWidth - 100, gameHeight - 5);
-			font.draw(batcher,  "Y: " + (projectiles.get(0).getY()) + "m", gameWidth - 100, gameHeight - 20);
+			//font.draw(batcher,  "X: " + (projectiles.get(0).getX() - launcher.getCenter()) + "m", gameWidth - 100, gameHeight - 5);
+			//font.draw(batcher,  "Y: " + (projectiles.get(0).getY()) + "m", gameWidth - 100, gameHeight - 20);
 			font.draw(batcher,  "Speed: " + (projectiles.get(0).getSpeed()) + "m/s", gameWidth - 100, gameHeight - 35);
 		}*/
 		

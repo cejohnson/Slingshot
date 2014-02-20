@@ -14,8 +14,6 @@ public class ProjectileLauncher {
 	private ElasticBand rightBand;
 	private ArrayList<Projectile> projectiles;
 	private Projectile currentProj;
-	
-	private Vector2 projForce;
 	private Vector2 acceleration;
 	private Rectangle pocket;
 	
@@ -25,6 +23,7 @@ public class ProjectileLauncher {
 	private static final float X_RANGE = 10;
 	private static final int NUM_PROJECTILES = 5;
 	protected static int numProjectiles = NUM_PROJECTILES;
+	protected static Vector2 force;
 	
 	private boolean applyForce = true;
 	
@@ -35,6 +34,7 @@ public class ProjectileLauncher {
 		leftBand = new ElasticBand((float) center - 3, BAND_TOP, (float) center - 1, BAND_BOTTOM);
 		rightBand = new ElasticBand((float) center + 3, BAND_TOP, (float) center + 1, BAND_BOTTOM);
 		pocket = new Rectangle(leftBand.bottom.x, leftBand.bottom.y, 2, 1);
+		force = new Vector2();
 	}
 	
 	public void addProjectile(float radius) {
@@ -55,12 +55,12 @@ public class ProjectileLauncher {
 			if (currentProj != null && !currentProj.isPostLaunch()) {
 				leftBand.bottom.x = currentProj.getX() - 1;
 				rightBand.bottom.x = currentProj.getX() + 1;
-				leftBand.bottom.y = currentProj.getY();
-				rightBand.bottom.y = currentProj.getY();
+				leftBand.bottom.y = currentProj.getY() - currentProj.getRadius();
+				rightBand.bottom.y = currentProj.getY() - currentProj.getRadius();
 				
-				projForce = leftBand.getForce().add(rightBand.getForce());
-				projForce.y -= currentProj.getMass()*GameWorld.GRAVITY;
-				acceleration = projForce.div(currentProj.getMass());
+				force = leftBand.getForce().add(rightBand.getForce());
+				force.y -= currentProj.getMass()*GameWorld.GRAVITY;
+				acceleration = force.div(currentProj.getMass());
 				currentProj.launch(acceleration);
 			} else {
 				leftBand.bottom.x = center - 1;
@@ -93,14 +93,16 @@ public class ProjectileLauncher {
 			x = center - X_RANGE;
 		leftBand.bottom.x = x - 1;
 		rightBand.bottom.x = x + 1;
-		leftBand.bottom.y = y;
-		rightBand.bottom.y = y;
+		leftBand.bottom.y = y - currentProj.getRadius();
+		rightBand.bottom.y = y - currentProj.getRadius();
 		pocket.setX(leftBand.bottom.x);
 		pocket.setY(leftBand.bottom.y);
 		
 		if (numProjectiles > 0) {
 			currentProj.setX(x);
 			currentProj.setY(y);
+			force = leftBand.getForce().add(rightBand.getForce());
+			force.y -= currentProj.getMass()*GameWorld.GRAVITY;
 		}
 	}
 	
@@ -125,6 +127,22 @@ public class ProjectileLauncher {
 		return center;
 	}
 	
+	public Vector2 getForce() {
+		return force;
+	}
+	
+	public Vector2 getCurrentProjLoc() {
+		if (currentProj != null)
+			return new Vector2(currentProj.getX(), currentProj.getY());
+		return null;
+	}
+	
+	public Vector2 getEndOfForceLine() {
+		if (currentProj != null)
+			return getCurrentProjLoc().add(force.cpy().scl(.00001f));
+		return null;
+	}
+	
 	public ElasticBand getLeftBand() {
 		return leftBand;
 	}
@@ -140,6 +158,7 @@ public class ProjectileLauncher {
 		double force; // N (kg*m/s^2)
 		float L0; // Initial length in m
 		double deltaL; // Change in length in m
+		double k;
 		
 		Vector2 top;
 		Vector2 bottom;
@@ -150,11 +169,12 @@ public class ProjectileLauncher {
 			L0 = top.dst2(bottom);
 			deltaL = 0;
 			force = 0;
+			k = E*A0/L0;
 		}
 		
 		public Vector2 getForce() {
 			deltaL = top.dst2(bottom) - L0;
-			force = E*A0*deltaL/L0;
+			force = k*deltaL; // Hooke's Law
 			return top.cpy().sub(bottom.cpy()).nor().scl((float) force);
 		}
 		

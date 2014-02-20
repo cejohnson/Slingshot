@@ -49,6 +49,7 @@ public class Projectile {
 	}
 
 	public void update(float delta) {
+		//System.out.println(velocity);
 
 		if (traveling) {
 			velocity.add(acceleration.cpy().scl(delta));
@@ -69,10 +70,14 @@ public class Projectile {
 						* velocity.y;
 			}
 			if (!inAir && postLaunch) {
-				if (velocity.len() > 0) {
+				if (velocity.len() > 0.01) {
 					acceleration.x = -(drag) * velocity.x; // Making it up
-				} else
+				} else {
+					System.out.println("Stopped");
 					traveling = false;
+					acceleration.set(0,0);
+					velocity.set(0,0);
+				}
 			}
 			if (position.y > launchHeight) {
 				postLaunch = true;
@@ -111,6 +116,8 @@ public class Projectile {
 		for (Enemy enemy : enemies) {
 			if (Intersector.overlaps(boundingCircle, enemy.getBoundingRectangle())) {
 				enemy.hit();
+				//Vector2 enemyMomentum = enemy.getMomentum();
+				
 			}
 		}
 	}
