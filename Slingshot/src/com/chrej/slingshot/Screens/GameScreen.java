@@ -2,38 +2,59 @@ package com.chrej.slingshot.Screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.GL10;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
+import com.badlogic.gdx.physics.box2d.World;
 import com.chrej.slingshot.GameWorld.GameRenderer;
 import com.chrej.slingshot.GameWorld.GameWorld;
 import com.chrej.slingshot.Helpers.InputHandler;
 
 public class GameScreen implements Screen {
 
-	private GameWorld world;
-	private GameRenderer renderer;
+	private GameWorld gameWorld;
+	//World world;
+	//World world = new World(new Vector2(0, -100), true); 
+	//private GameRenderer renderer;
+	Box2DDebugRenderer debugRenderer;
 	private float runTime;
+	OrthographicCamera camera;
 
 	// This is the constructor, not the class declaration
 	public GameScreen() {
 
 		float screenWidth = Gdx.graphics.getWidth();
 		float screenHeight = Gdx.graphics.getHeight();
-		float gameWidth = 300;
+		float gameWidth = 240;
 		float gameHeight = screenHeight / (screenWidth / gameWidth);
+		
+		camera = new OrthographicCamera();  
+        camera.viewportHeight = 135;  
+        camera.viewportWidth = 240;  
+        camera.position.set(camera.viewportWidth/2, camera.viewportHeight/2, 0f);  
+        camera.update();
 
 		
 
-		world = new GameWorld((int) gameWidth, (int) gameHeight);
-		renderer = new GameRenderer(world, (int) gameHeight, (int) gameWidth);
+		gameWorld = new GameWorld((int) gameWidth, (int) gameHeight);
+		//world = gameWorld.getWorld();
+		//renderer = new GameRenderer(world, (int) gameHeight, (int) gameWidth);
 
-		Gdx.input.setInputProcessor(new InputHandler(world.getLauncher(), gameWidth/screenWidth, gameHeight));
+		Gdx.input.setInputProcessor(new InputHandler(gameWorld.getLauncher(), gameWidth/screenWidth, gameHeight));
+		debugRenderer = new Box2DDebugRenderer();
 
 	}
 
 	@Override
 	public void render(float delta) {
-		runTime += delta;
-		world.update(delta);
-		renderer.render(runTime);
+		//runTime += delta;
+		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
+		//System.out.println("World: " + gameWorld.getWorld());
+		//System.out.println("Camera: " + camera.combined);
+		debugRenderer.render(GameWorld.world, camera.combined);
+		gameWorld.update(delta);
+		//renderer.render(runTime);
 	}
 
 	@Override

@@ -118,10 +118,10 @@ public class GameRenderer {
 		shapeRenderer.line(launcher.getLeftBand().getBottom(), launcher.getRightBand().getBottom());
 		
 		//Draw Force line
-		if (launcher.getCurrentProjLoc() != null) {
+		/*if (launcher.getCurrentProjLoc() != null) {
 			shapeRenderer.setColor(Color.RED);
 			shapeRenderer.line(launcher.getCurrentProjLoc(), launcher.getEndOfForceLine());
-		}
+		}*/
 		
 		shapeRenderer.end();
 		
@@ -145,7 +145,7 @@ public class GameRenderer {
 
 	private void initGameObjects() {
 		launcher = myWorld.getLauncher();
-		projectiles = launcher.getProjectiles();
+		//projectiles = launcher.getProjectiles();
 		enemies = myWorld.getEnemies();
 		
 		/*scroller = myWorld.getScroller();

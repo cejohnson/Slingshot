@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
 import com.chrej.slingshot.GameObjects.Projectiles.*;
 import com.chrej.slingshot.GameWorld.GameWorld;
 
@@ -12,10 +13,13 @@ public class ProjectileLauncher {
 	private int center;
 	private ElasticBand leftBand;
 	private ElasticBand rightBand;
-	private ArrayList<Projectile> projectiles;
-	private Projectile currentProj;
+	//private ArrayList<Body> projectiles;
+	private Body currentProj;
 	private Vector2 acceleration;
-	private Rectangle pocket;
+	//private Rectangle pocket;
+	private Body leftUpright;
+	private Body rightUpright;
+	private Body pocket;
 	
 	private static final float BAND_TOP = 20f;
 	private static final float BAND_BOTTOM = 15f;
@@ -30,19 +34,36 @@ public class ProjectileLauncher {
 
 	public ProjectileLauncher(int gameWidth) {
 		center = gameWidth / 2;
-		projectiles = new ArrayList<Projectile>();
+		//System.out.println(center);
+		leftUpright = GameWorld.world.createBody(BodyDefs.launcherUprightBodyDef);
+		leftUpright.createFixture(FixtureDefs.launcherUprightFixtureDef);
+		leftUpright.setTransform(center-5, 5, leftUpright.getAngle());
+		rightUpright = GameWorld.world.createBody(BodyDefs.launcherUprightBodyDef);
+		rightUpright.createFixture(FixtureDefs.launcherUprightFixtureDef);
+		rightUpright.setTransform(center+5, 5, rightUpright.getAngle());
+		
+		pocket = GameWorld.world.createBody(BodyDefs.launcherPocketBodyDef);
+		pocket.createFixture(FixtureDefs.launcherPocketFixtureDef);
+		//pocket.setTransform(center, 15, pocket.getAngle());
+		
+		
+		//projectiles = new ArrayList<Body>();
 		leftBand = new ElasticBand((float) center - 3, BAND_TOP, (float) center - 1, BAND_BOTTOM);
 		rightBand = new ElasticBand((float) center + 3, BAND_TOP, (float) center + 1, BAND_BOTTOM);
-		pocket = new Rectangle(leftBand.bottom.x, leftBand.bottom.y, 2, 1);
+		//pocket = new Rectangle(leftBand.bottom.x, leftBand.bottom.y, 2, 1);
 		force = new Vector2();
+		
 	}
 	
 	public void addProjectile(float radius) {
-		currentProj = new Rock((int) center, (int) BAND_BOTTOM, radius);
-		projectiles.add(currentProj);
-		if (projectiles.size() > NUM_PROJECTILES)
-			projectiles.remove(0);
-		GameWorld.addProjectile(currentProj);
+		currentProj = GameWorld.world.createBody(BodyDefs.projectileBodyDef);
+		currentProj.createFixture(FixtureDefs.projectileFixtureDef);
+		//currentProj.setTransform(new Vector2(center, BAND_BOTTOM), currentProj.getAngle());
+		//currentProj = proj;
+		//projectiles.add(currentProj);
+		//if (projectiles.size() > NUM_PROJECTILES)
+			//projectiles.remove(0);
+		//GameWorld.addProjectile(currentProj);
 	}
 	
 	public static void returnProj() {
@@ -52,39 +73,46 @@ public class ProjectileLauncher {
 	
 	public void update(float delta) {
 		if (applyForce) {
-			if (currentProj != null && !currentProj.isPostLaunch()) {
-				leftBand.bottom.x = currentProj.getX() - 1;
-				rightBand.bottom.x = currentProj.getX() + 1;
-				leftBand.bottom.y = currentProj.getY() - currentProj.getRadius();
-				rightBand.bottom.y = currentProj.getY() - currentProj.getRadius();
+			if (currentProj != null && currentProj.getPosition().y < BAND_BOTTOM) {
+				leftBand.bottom.x = currentProj.getPosition().x - 1;
+				rightBand.bottom.x = currentProj.getPosition().x + 1;
+				leftBand.bottom.y = currentProj.getPosition().y - currentProj.getFixtureList().get(0).getShape().getRadius();
+				rightBand.bottom.y = currentProj.getPosition().y - currentProj.getFixtureList().get(0).getShape().getRadius();
+				
+				System.out.println("Left: (" + leftBand.top.x + ", " + leftBand.top.y + "), (" + leftBand.bottom.x + ", " + leftBand.bottom.y + ")");
+				System.out.println("Right: (" + rightBand.top.x + ", " + rightBand.top.y + "), (" + rightBand.bottom.x + ", " + rightBand.bottom.y + ")");
 				
 				force = leftBand.getForce().add(rightBand.getForce());
-				force.y -= currentProj.getMass()*GameWorld.GRAVITY;
-				acceleration = force.div(currentProj.getMass());
-				currentProj.launch(acceleration);
+				//force.y -= currentProj.getMass()*GameWorld.GRAVITY;
+				//acceleration = force.div(currentProj.getMass());
+				System.out.println(force);
+				currentProj.applyForceToCenter(force, true);
 			} else {
 				leftBand.bottom.x = center - 1;
 				rightBand.bottom.x = center + 1;
 				leftBand.bottom.y = BAND_BOTTOM;
 				rightBand.bottom.y = BAND_BOTTOM;
 			}
-			pocket.setX(leftBand.bottom.x);
-			pocket.setY(leftBand.bottom.y);
+			//pocket.setX(leftBand.bottom.x);
+			//pocket.setY(leftBand.bottom.y);
+		} else {
+			currentProj.applyForceToCenter(0, currentProj.getMass()*GameWorld.GRAVITY, true);
 		}
-		for (Projectile proj : projectiles) {
+		/*for (Projectile proj : projectiles) {
 			proj.update(delta);
-		}
+		}*/
 	}
 	
 	public void onClick(float x, float y) {
-		if (numProjectiles > 0){
+		//if (numProjectiles > 0){
 			addProjectile(.75f);
-		}
+		//}
 		applyForce = false;
 		onDrag(x, y);
 	}
 	
 	public void onDrag(float x, float y) {
+		System.out.println("X: " + x + ", Y: " + y);
 		if (y < Y_MIN)
 			y = Y_MIN;
 		if (x > center + X_RANGE)
@@ -93,25 +121,29 @@ public class ProjectileLauncher {
 			x = center - X_RANGE;
 		leftBand.bottom.x = x - 1;
 		rightBand.bottom.x = x + 1;
-		leftBand.bottom.y = y - currentProj.getRadius();
-		rightBand.bottom.y = y - currentProj.getRadius();
-		pocket.setX(leftBand.bottom.x);
-		pocket.setY(leftBand.bottom.y);
+		leftBand.bottom.y = y - currentProj.getFixtureList().get(0).getShape().getRadius();
+		rightBand.bottom.y = y - currentProj.getFixtureList().get(0).getShape().getRadius();
+		//pocket.setX(leftBand.bottom.x);
+		//pocket.setY(leftBand.bottom.y);
 		
-		if (numProjectiles > 0) {
-			currentProj.setX(x);
-			currentProj.setY(y);
+		System.out.println("Left: (" + leftBand.top.x + ", " + leftBand.top.y + "), (" + leftBand.bottom.x + ", " + leftBand.bottom.y + ")");
+		System.out.println("Right: (" + rightBand.top.x + ", " + rightBand.top.y + "), (" + rightBand.bottom.x + ", " + rightBand.bottom.y + ")");
+		
+		//if (numProjectiles > 0) {
+			currentProj.setTransform(new Vector2(x, y), currentProj.getAngle());
 			force = leftBand.getForce().add(rightBand.getForce());
-			force.y -= currentProj.getMass()*GameWorld.GRAVITY;
-		}
+			//force.y -= currentProj.getMass()*GameWorld.GRAVITY;
+			System.out.println(force);
+		//}
 	}
 	
 	public void offClick(float x, float y) {
 		onDrag(x, y);
-		if (numProjectiles > 0) {
-			numProjectiles--;
-			GameWorld.addShot();
-		}
+		//if (numProjectiles > 0) {
+			//numProjectiles--;
+			//GameWorld.addShot();
+		//}
+		System.out.println("\n\n\nLAUNCH\n\n\n");
 		applyForce = true;
 	}
 	
@@ -119,9 +151,9 @@ public class ProjectileLauncher {
 		return numProjectiles;
 	}
 	
-	public ArrayList<Projectile> getProjectiles() {
+	/*public ArrayList<Projectile> getProjectiles() {
 		return projectiles;
-	}
+	}*/
 	
 	public int getCenter() {
 		return center;
@@ -131,7 +163,7 @@ public class ProjectileLauncher {
 		return force;
 	}
 	
-	public Vector2 getCurrentProjLoc() {
+	/*public Vector2 getCurrentProjLoc() {
 		if (currentProj != null)
 			return new Vector2(currentProj.getX(), currentProj.getY());
 		return null;
@@ -141,7 +173,7 @@ public class ProjectileLauncher {
 		if (currentProj != null)
 			return getCurrentProjLoc().add(force.cpy().scl(.00001f));
 		return null;
-	}
+	}*/
 	
 	public ElasticBand getLeftBand() {
 		return leftBand;
